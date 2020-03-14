@@ -488,6 +488,7 @@ func (session *Session) handleRequest(req *Request) {
 		} else {
 			addPusher = true
 		}
+		logger.Printf("========> addPusher: %v, path: %v, closeOld: %v", addPusher, session.Path, session.closeOld)
 		if addPusher {
 			session.Pusher = NewPusher(session)
 			addedToServer := session.Server.AddPusher(session.Pusher)

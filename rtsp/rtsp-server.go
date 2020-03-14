@@ -190,16 +190,24 @@ func (server *Server) Stop() {
 func (server *Server) AddPusher(pusher *Pusher) bool {
 	logger := server.logger
 	added := false
-	server.pushersLock.Lock()
-	_, ok := server.pushers[pusher.Path()]
+	// server.pushersLock.Lock()
+	logger.Printf("========> pusher.Path: %v", pusher.Path())
+	oldPusher, ok := server.pushers[pusher.Path()]
 	if !ok {
 		server.pushers[pusher.Path()] = pusher
 		logger.Printf("%v start, now pusher size[%d]", pusher, len(server.pushers))
 		added = true
 	} else {
-		added = false
+		// bruce-lu: fix 406 issue
+		// added = false
+		added = true
+		oldPusher.ClearPlayer()
+		oldPusher.Server().RemovePusher(oldPusher)
+		oldPusher.Stop()
+		server.pushers[pusher.Path()] = pusher
+		logger.Printf("bruce.lu: force close old pusher and start new %v, now pusher size[%d]", pusher, len(server.pushers))
 	}
-	server.pushersLock.Unlock()
+	//server.pushersLock.Unlock()
 	if added {
 		go pusher.Start()
 		server.addPusherCh <- pusher
